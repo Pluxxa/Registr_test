@@ -2,7 +2,7 @@ from flask import render_template, request, redirect, url_for, flash
 from flask_login import login_user, logout_user, current_user, login_required
 from app.models import User
 from app import app, db, bcrypt
-from app.forms import RegistrationForm, LoginForm
+from app.forms import RegistrationForm, LoginForm, UpdateAccountForm
 
 @app.route('/')
 @app.route('/home')
@@ -37,7 +37,6 @@ def login():
             flash('Введены неверные данные')
     return render_template('login.html', form=form, title='Login')
 
-
 @app.route('/logout')
 def logout():
     logout_user()
@@ -47,3 +46,21 @@ def logout():
 @login_required
 def account():
     return render_template('account.html')
+
+@app.route('/settings', methods=['GET', 'POST'])
+@login_required
+def settings():
+    form = UpdateAccountForm()
+    if form.validate_on_submit():
+        if form.password.data:
+            hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+            current_user.password = hashed_password
+        current_user.username = form.username.data
+        current_user.email = form.email.data
+        db.session.commit()
+        flash('Ваш аккаунт был обновлен!', 'success')
+        return redirect(url_for('settings'))
+    elif request.method == 'GET':
+        form.username.data = current_user.username
+        form.email.data = current_user.email
+    return render_template('settings.html', title='Settings', form=form)

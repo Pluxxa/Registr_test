@@ -3,13 +3,12 @@ from wtforms import StringField, PasswordField, BooleanField, SubmitField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
 from app.models import User
 
-
 class RegistrationForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired(), Length(min=2, max=35)])
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
     confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
-    submit = SubmitField('Sign Up')
+    submit = SubmitField('Sign Up!')
 
     def validate_username(self, username):
         user = User.query.filter_by(username=username.data).first()
@@ -19,11 +18,17 @@ class RegistrationForm(FlaskForm):
     def validate_email(self, email):
         email = User.query.filter_by(email=email.data).first()
         if email:
-            raise ValidationError('Такая почта уже используется')
-
+            raise ValidationError('Такая почта уже существует')
 
 class LoginForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
     remember = BooleanField('Запомни меня')
-    submit = SubmitField('Login')
+    submit = SubmitField('Login!')
+
+class UpdateAccountForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired(), Length(min=2, max=35)])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    password = PasswordField('New Password', validators=[Length(min=0)])  # Not required
+    confirm_password = PasswordField('Confirm New Password', validators=[EqualTo('password')])
+    submit = SubmitField('Update')
